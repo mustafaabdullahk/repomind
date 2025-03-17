@@ -1,8 +1,25 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Repository } from '@/lib/github/types';
+// Remove the import and define the interface locally
+// import { Repository } from '@/lib/github/types';
 import Link from 'next/link';
+
+// Define the Repository interface locally
+interface Repository {
+  id: number;
+  name: string;
+  full_name: string;
+  description: string | null;
+  html_url: string;
+  stargazers_count: number;
+  language: string | null;
+  updated_at: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
+}
 
 interface RepositorySummaryProps {
   repository: Repository;

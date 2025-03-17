@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { getPublicPath } from '@/lib/utils/path';
 
 export default function Header() {
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export default function Header() {
   return (
     <header className="py-6">
       <div className="container mx-auto flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href={getPublicPath('/')} className="flex items-center space-x-2">
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             viewBox="0 0 24 24" 
@@ -35,7 +36,7 @@ export default function Header() {
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
           <Link 
-            href="/" 
+            href={getPublicPath('/')} 
             className={`text-sm font-medium ${
               isActive('/') 
                 ? 'text-blue-600 dark:text-blue-400' 
@@ -45,7 +46,7 @@ export default function Header() {
             Search
           </Link>
           <Link 
-            href="/trending" 
+            href={getPublicPath('/trending')} 
             className={`text-sm font-medium ${
               isActive('/trending') 
                 ? 'text-blue-600 dark:text-blue-400' 
@@ -55,7 +56,7 @@ export default function Header() {
             Trending
           </Link>
           <Link 
-            href="/about" 
+            href={getPublicPath('/about')} 
             className={`text-sm font-medium ${
               isActive('/about') 
                 ? 'text-blue-600 dark:text-blue-400' 
@@ -65,7 +66,7 @@ export default function Header() {
             About
           </Link>
           <Link 
-            href="/settings" 
+            href={getPublicPath('/settings')} 
             className={`text-sm font-medium ${
               isActive('/settings') 
                 ? 'text-blue-600 dark:text-blue-400' 

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Repository } from '@/lib/github/types';
+// Remove the conflicting import and use only the local interface
+// import { Repository } from '@/lib/github/types';
 import RepositorySummary from './RepositorySummary';
 import { AIProvider } from '@/lib/ai';
 
