@@ -31,6 +31,9 @@ export default function Header() {
           <Link href="/about" className="text-sm font-medium hover:text-primary">
             About
           </Link>
+          <Link href="/settings" className="text-sm font-medium hover:text-primary">
+            Settings
+          </Link>
         </nav>
         <div className="flex items-center space-x-4">
           <button 
