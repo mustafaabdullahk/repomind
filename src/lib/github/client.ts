@@ -65,4 +65,41 @@ export class GitHubClient {
 
     return parts.join(' ');
   }
+
+  public async getRepositoryReadme(owner: string, repo: string): Promise<string> {
+    try {
+      const response = await this.client.repos.getReadme({
+        owner,
+        repo,
+      });
+      
+      // The README is returned as base64 encoded content
+      const readme = Buffer.from(response.data.content, 'base64').toString('utf-8');
+      return readme;
+    } catch (error) {
+      if (error.status === 404) {
+        return 'No README file found in this repository.';
+      }
+      throw error;
+    }
+  }
+
+  public async getRepositoryFileStructure(owner: string, repo: string): Promise<string[]> {
+    try {
+      const response = await this.client.repos.getContent({
+        owner,
+        repo,
+        path: '',
+      });
+      
+      if (Array.isArray(response.data)) {
+        return response.data.map(item => `${item.type === 'dir' ? '📁' : '📄'} ${item.path}`);
+      }
+      
+      return ['Repository content structure could not be retrieved.'];
+    } catch (error) {
+      console.error('Error retrieving repository structure:', error);
+      return ['Repository content structure could not be retrieved.'];
+    }
+  }
 } 
