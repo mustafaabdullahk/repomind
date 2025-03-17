@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import MistralClient from '@mistralai/mistralai';
 
 export type KeyStatus = 'valid' | 'invalid' | 'limited' | 'unknown';
 
@@ -15,7 +14,7 @@ export async function validateOpenAIKey(apiKey: string): Promise<KeyStatus> {
     // Make a minimal API call to check key validity
     await openai.models.list();
     return 'valid';
-  } catch (error) {
+  } catch (error: any) {
     if (error.status === 401) {
       return 'invalid';
     } else if (error.status === 429) {
@@ -29,17 +28,25 @@ export async function validateMistralKey(apiKey: string): Promise<KeyStatus> {
   if (!apiKey) return 'invalid';
   
   try {
-    const mistral = new MistralClient(apiKey);
+    // Make a direct API call to check key validity using fetch
+    const response = await fetch('https://api.mistral.ai/v1/models', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    // Make a minimal API call to check key validity
-    await mistral.listModels();
-    return 'valid';
-  } catch (error) {
-    if (error.status === 401 || error.status === 403) {
+    if (response.ok) {
+      return 'valid';
+    } else if (response.status === 401 || response.status === 403) {
       return 'invalid';
-    } else if (error.status === 429) {
+    } else if (response.status === 429) {
       return 'limited';
     }
+    return 'unknown';
+  } catch (error: any) {
+    console.error('Error validating Mistral key:', error);
     return 'unknown';
   }
 } 

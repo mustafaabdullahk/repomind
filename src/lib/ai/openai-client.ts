@@ -40,7 +40,7 @@ export class OpenAIClient extends BaseAIClient {
       return this.parseResponse(completion.choices[0].message.content || '');
     } catch (error) {
       // Check for rate limit error
-      if (error.status === 429) {
+      if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
         console.error('OpenAI rate limit exceeded:', error);
         throw new Error('OpenAI API quota exceeded. Please check your billing details or try using Mistral AI instead.');
       }
@@ -95,6 +95,8 @@ Format your response as a JSON object with the following fields:
         summary: 'Unable to generate summary from AI response.',
         keyFeatures: [],
         technologiesUsed: [],
+        difficultyLevel: 'Intermediate', // Default value
+        recommendedUses: [],
       };
     }
   }

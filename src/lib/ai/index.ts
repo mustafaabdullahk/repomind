@@ -38,7 +38,10 @@ export class AIClientFactory {
       }
     } catch (error) {
       console.error('Error creating AI client:', error);
-      throw error;
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Unknown error creating AI client: ${String(error)}`);
     }
   }
   

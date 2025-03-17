@@ -46,7 +46,7 @@ export class MistralAIClient extends BaseAIClient {
       return this.parseResponse(data.choices[0].message.content);
     } catch (error) {
       console.error('Error summarizing repository with Mistral:', error);
-      throw new Error(`Failed to summarize using Mistral: ${error.message || 'Unknown error'}`);
+      throw new Error(`Failed to summarize using Mistral: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -94,6 +94,8 @@ Format your response as a JSON object with the following fields:
         summary: 'Unable to generate summary from AI response.',
         keyFeatures: [],
         technologiesUsed: [],
+        difficultyLevel: 'Intermediate',
+        recommendedUses: [],
       };
     }
   }
