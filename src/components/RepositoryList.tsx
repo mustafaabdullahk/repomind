@@ -1,5 +1,10 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { Repository } from '@/lib/github/types';
+import RepositorySummary from './RepositorySummary';
+import { AIProvider } from '@/lib/ai';
 
 // Define Repository type locally instead of importing from the GitHub client
 interface Repository {
@@ -60,9 +65,33 @@ const mockRepositories: Repository[] = [
 ];
 
 export default function RepositoryList({ results }: RepositoryListProps) {
+  const [selectedRepository, setSelectedRepository] = useState<Repository | null>(null);
+  const [aiProvider, setAiProvider] = useState<AIProvider>('openai');
+  
+  // Force a remount of the RepositorySummary component when provider changes
+  const [summaryKey, setSummaryKey] = useState(0);
+  
+  // Debug the current provider state
+  useEffect(() => {
+    console.log("Current provider in RepositoryList state:", aiProvider);
+  }, [aiProvider]);
+  
   // Use search results if available, otherwise use mock data
   const repositories = results?.items || mockRepositories;
   const totalCount = results?.total_count;
+  
+  // Direct switch functions with debugging
+  const switchToOpenAI = () => {
+    console.log("Switching to OpenAI");
+    setAiProvider('openai');
+    setSummaryKey(prev => prev + 1);
+  };
+  
+  const switchToMistral = () => {
+    console.log("Switching to Mistral");
+    setAiProvider('mistral');
+    setSummaryKey(prev => prev + 1);
+  };
   
   if (repositories.length === 0) {
     return (
@@ -76,9 +105,46 @@ export default function RepositoryList({ results }: RepositoryListProps) {
   
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">
-        {totalCount !== undefined ? `Results (${totalCount.toLocaleString()} repositories found)` : 'Results'}
-      </h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold">
+          {totalCount !== undefined ? `Results (${totalCount.toLocaleString()} repositories found)` : 'Results'}
+        </h2>
+        {selectedRepository && (
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">AI Provider:</span>
+            
+            {/* Replace dropdown with direct buttons */}
+            <div className="flex space-x-2">
+              <button
+                onClick={switchToOpenAI}
+                className={`px-3 py-1 text-xs rounded ${
+                  aiProvider === 'openai' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                OpenAI
+              </button>
+              
+              <button
+                onClick={switchToMistral}
+                className={`px-3 py-1 text-xs rounded ${
+                  aiProvider === 'mistral' 
+                    ? 'bg-purple-600 text-white' 
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                Mistral
+              </button>
+            </div>
+            
+            {/* Visual indicator of current provider */}
+            <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+              Active: {aiProvider}
+            </span>
+          </div>
+        )}
+      </div>
       <div className="space-y-4">
         {repositories.map((repo) => (
           <div 
@@ -143,30 +209,44 @@ export default function RepositoryList({ results }: RepositoryListProps) {
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 Updated on {new Date(repo.updated_at).toLocaleDateString()}
               </span>
-              <a 
-                href={repo.html_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-400/30 dark:hover:bg-blue-900/40"
-              >
-                View Repository
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="14" 
-                  height="14" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="ml-1"
+              <div className="flex space-x-2">
+                <a 
+                  href={repo.html_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-400/30 dark:hover:bg-blue-900/40"
                 >
-                  <path d="M7 7h10v10" />
-                  <path d="M7 17 17 7" />
-                </svg>
-              </a>
+                  View Repository
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="ml-1"
+                  >
+                    <path d="M7 7h10v10" />
+                    <path d="M7 17 17 7" />
+                  </svg>
+                </a>
+                <button
+                  onClick={() => setSelectedRepository(selectedRepository?.id === repo.id ? null : repo)}
+                  className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-700/10 hover:bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400 dark:ring-gray-400/30 dark:hover:bg-gray-900/40"
+                >
+                  {selectedRepository?.id === repo.id ? 'Hide Summary' : 'AI Summary'}
+                </button>
+              </div>
             </div>
+            
+            {selectedRepository?.id === repo.id && (
+              <div className="mt-4">
+                <RepositorySummary repository={repo} />
+              </div>
+            )}
           </div>
         ))}
       </div>
