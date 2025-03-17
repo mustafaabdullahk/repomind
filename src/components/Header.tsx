@@ -14,6 +14,16 @@ export default function Header() {
     if (path !== '/' && pathname?.startsWith(path)) return true;
     return false;
   };
+  
+  // For debugging paths in deployment
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Current path:', pathname);
+      console.log('Base path:', process.env.NEXT_PUBLIC_BASE_PATH);
+      console.log('Home link:', getPublicPath('/'));
+      console.log('Settings link:', getPublicPath('/settings'));
+    }
+  }, [pathname]);
 
   return (
     <header className="py-6">

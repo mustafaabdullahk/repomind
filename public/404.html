@@ -4,10 +4,35 @@
   <meta charset="utf-8">
   <title>RepoMind - GitHub Repository Explorer</title>
   <script>
-    // Get the repository name from the URL
-    const repositoryName = location.pathname.split('/')[1];
-    // Redirect to the homepage with the correct base path
-    window.location.href = `/${repositoryName}`;
+    // Log current path for debugging
+    console.log("404 redirect from:", window.location.pathname);
+    
+    // Get repository name from the URL (first segment after domain)
+    const pathSegments = window.location.pathname.split('/');
+    const repoName = pathSegments[1] || '';
+    
+    // Check if we have a repeated repository name in the path
+    const hasRepeatedRepo = repoName && pathSegments.length > 2 && pathSegments[2] === repoName;
+    
+    // Build the correct redirect URL
+    let redirectPath = '/';
+    if (repoName) {
+      redirectPath = `/${repoName}`;
+      
+      // If we have remaining path segments but not a duplicate, add them
+      if (pathSegments.length > 2 && !hasRepeatedRepo) {
+        redirectPath += window.location.pathname.substring(repoName.length + 1);
+      }
+      // If we have a duplicate repo name, skip it in the redirect
+      else if (hasRepeatedRepo && pathSegments.length > 3) {
+        redirectPath += '/' + pathSegments.slice(3).join('/');
+      }
+    }
+    
+    console.log("Redirecting to:", redirectPath);
+    
+    // Redirect to the corrected path
+    window.location.href = redirectPath;
   </script>
 </head>
 <body>
