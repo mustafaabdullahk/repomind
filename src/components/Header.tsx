@@ -1,7 +1,19 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
+  const pathname = usePathname();
+
+  // Determine if a link is active based on the current path
+  const isActive = (path: string) => {
+    if (path === '/' && pathname === '/') return true;
+    if (path !== '/' && pathname?.startsWith(path)) return true;
+    return false;
+  };
+
   return (
     <header className="py-6">
       <div className="container mx-auto flex items-center justify-between">
@@ -22,16 +34,44 @@ export default function Header() {
           <span className="font-bold text-xl">RepoMind</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/" className="text-sm font-medium hover:text-primary">
-            Home
+          <Link 
+            href="/" 
+            className={`text-sm font-medium ${
+              isActive('/') 
+                ? 'text-blue-600 dark:text-blue-400' 
+                : 'hover:text-blue-600 dark:hover:text-blue-400'
+            }`}
+          >
+            Search
           </Link>
-          <Link href="/trending" className="text-sm font-medium hover:text-primary">
+          <Link 
+            href="/trending" 
+            className={`text-sm font-medium ${
+              isActive('/trending') 
+                ? 'text-blue-600 dark:text-blue-400' 
+                : 'hover:text-blue-600 dark:hover:text-blue-400'
+            }`}
+          >
             Trending
           </Link>
-          <Link href="/about" className="text-sm font-medium hover:text-primary">
+          <Link 
+            href="/about" 
+            className={`text-sm font-medium ${
+              isActive('/about') 
+                ? 'text-blue-600 dark:text-blue-400' 
+                : 'hover:text-blue-600 dark:hover:text-blue-400'
+            }`}
+          >
             About
           </Link>
-          <Link href="/settings" className="text-sm font-medium hover:text-primary">
+          <Link 
+            href="/settings" 
+            className={`text-sm font-medium ${
+              isActive('/settings') 
+                ? 'text-blue-600 dark:text-blue-400' 
+                : 'hover:text-blue-600 dark:hover:text-blue-400'
+            }`}
+          >
             Settings
           </Link>
         </nav>
