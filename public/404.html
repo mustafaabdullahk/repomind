@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>RepoMind - GitHub Repository Explorer</title>
+  <script>
+    // Get the repository name from the URL
+    const repositoryName = location.pathname.split('/')[1];
+    // Redirect to the homepage with the correct base path
+    window.location.href = `/${repositoryName}`;
+  </script>
+</head>
+<body>
+  <h1>Page Not Found</h1>
+  <p>Redirecting to home page...</p>
+</body>
+</html> 
