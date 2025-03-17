@@ -16,7 +16,9 @@ export default function Home() {
     <main className="container mx-auto px-4 py-8">
       <Header />
       <div className="max-w-4xl mx-auto mt-12">
+        <h1 className="text-3xl font-bold mb-6">GitHub Repository Search</h1>
         <SearchBar onSearchResults={handleSearchResults} />
+        
         <div className="mt-8">
           <RepositoryList results={searchResults} />
         </div>
