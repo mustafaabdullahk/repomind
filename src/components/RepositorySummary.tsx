@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 // Remove the import and define the interface locally
 // import { Repository } from '@/lib/github/types';
 import Link from 'next/link';
+import { event } from '@/lib/utils/analytics';
 
 // Define the Repository interface locally
 interface Repository {
@@ -49,6 +50,14 @@ export default function RepositorySummary({ repository }: RepositorySummaryProps
   // Handle provider change
   const handleProviderChange = (newProvider: AIProvider) => {
     console.log(`Changing provider from ${provider} to ${newProvider}`);
+    
+    // Track provider change in analytics
+    event({
+      action: 'change_ai_provider',
+      category: 'ai_usage',
+      label: newProvider,
+    });
+    
     setProvider(newProvider);
     setRefreshKey(prev => prev + 1);
     // Reset state when changing provider
@@ -67,6 +76,14 @@ export default function RepositorySummary({ repository }: RepositorySummaryProps
     
     const fetchSummary = async () => {
       try {
+        // Track summary request
+        event({
+          action: 'request_summary',
+          category: 'ai_usage',
+          label: provider,
+          value: 1
+        });
+        
         // Get the README content first
         const [owner, repo] = repository.full_name.split('/');
         

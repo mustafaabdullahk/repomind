@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGitHubSearch } from '@/hooks/useGitHubSearch';
+import { event } from '@/lib/utils/analytics';
 
 interface SearchBarProps {
   onSearchResults?: (results: any) => void;
@@ -22,6 +23,14 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
     if (!searchQuery.trim()) return;
     
     try {
+      // Track search event
+      event({
+        action: 'search',
+        category: 'repository',
+        label: searchQuery,
+        value: filters.language ? 1 : 0, // Track if filters were used
+      });
+      
       const results = await searchRepositories(searchQuery, {
         language: filters.language || undefined,
         stars: filters.stars ? parseInt(filters.stars) : undefined,
@@ -30,10 +39,25 @@ export default function SearchBar({ onSearchResults }: SearchBarProps) {
       });
       
       if (results && onSearchResults) {
+        // Track search results count
+        event({
+          action: 'search_results',
+          category: 'repository',
+          label: searchQuery,
+          value: results.items?.length || 0,
+        });
+        
         onSearchResults(results);
       }
     } catch (err) {
       console.error('Search error:', err);
+      
+      // Track search error
+      event({
+        action: 'search_error',
+        category: 'error',
+        label: String(err),
+      });
     }
   };
   
