@@ -3,10 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'export',  // Enables static exports
   trailingSlash: true, // Add trailing slashes
-  images: {
-    domains: ['avatars.githubusercontent.com'],
-    unoptimized: true, // Required for static export
-  },
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
@@ -16,11 +12,22 @@ const nextConfig = {
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
   
-  // Improve static export for client components
+  // Set these variables for static export
+  env: {
+    NEXT_PUBLIC_STATIC_EXPORT: 'true',
+    CI: 'false', // Needed for client components to work in static export
+    FORCE_PARTIAL_HYDRATION: 'true' // Enable partial hydration
+  },
+
+  // Experimental features
   experimental: {
-    // These are no longer needed in newest Next.js versions, but keeping them for compatibility
-    appDir: true,
-    serverComponentsExternalPackages: []
+    // Isolate client components for static export
+    optimizeClientComponents: false,
+    // Support external packages
+    serverComponentsExternalPackages: [
+      'langchain',
+      'js-tiktoken'
+    ]
   }
 };
 

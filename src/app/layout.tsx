@@ -3,7 +3,12 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import React from 'react';
 import Script from 'next/script';
-import AnalyticsWrapper from '@/components/AnalyticsWrapper';
+import dynamic from 'next/dynamic';
+
+// Use dynamic import with no SSR for AnalyticsWrapper
+const AnalyticsWrapper = dynamic(() => import('@/components/AnalyticsWrapper'), {
+  ssr: false
+});
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -51,9 +56,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-50`}>
-        <AnalyticsWrapper>
-          {children}
-        </AnalyticsWrapper>
+        {children}
       </body>
     </html>
   );
