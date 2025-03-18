@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
+import HeaderWrapper from '@/components/HeaderWrapper';
 import { validateOpenAIKey, validateMistralKey } from '@/lib/ai/key-validator';
 import { GitHubClient } from '@/lib/github';
 
@@ -26,7 +26,21 @@ const validateGitHubToken = async (token: string): Promise<'valid' | 'invalid'> 
   }
 };
 
-export default function SettingsPage() {
+// Loading fallback for settings page
+function SettingsLoadingFallback() {
+  return (
+    <div className="max-w-2xl mx-auto mt-12 animate-pulse space-y-6">
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-6"></div>
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mb-6">
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6"></div>
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4"></div>
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsContent() {
   const router = useRouter();
   const [openaiKey, setOpenaiKey] = useState('');
   const [mistralKey, setMistralKey] = useState('');
@@ -144,275 +158,285 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <Header />
-      <div className="max-w-2xl mx-auto mt-12">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
-        
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mb-6">
-          <div className="space-y-6">
+    <div className="max-w-2xl mx-auto mt-12">
+      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mb-6">
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-medium mb-4">GitHub Settings</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Enter your GitHub personal access token to access repositories and increase rate limits.
+              For public repositories, this is optional but recommended.
+            </p>
+            
             <div>
-              <h2 className="text-lg font-medium mb-4">GitHub Settings</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Enter your GitHub personal access token to access repositories and increase rate limits.
-                For public repositories, this is optional but recommended.
+              <label htmlFor="github-token" className="block text-sm font-medium mb-1">
+                GitHub Personal Access Token
+              </label>
+              <input
+                id="github-token"
+                type="password"
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                placeholder="ghp_..."
+                className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
+              />
+              {keyStatus.github === 'valid' && (
+                <p className="mt-1 text-xs text-green-500">
+                  ✓ Valid GitHub token
+                </p>
+              )}
+              {keyStatus.github === 'invalid' && (
+                <p className="mt-1 text-xs text-red-500">
+                  ✗ Invalid GitHub token
+                </p>
+              )}
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Create a token with <code>repo</code> scope at{' '}
+                <a 
+                  href="https://github.com/settings/tokens" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  GitHub Developer Settings
+                </a>
               </p>
-              
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-medium mb-4">AI Settings</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Enter your API keys to use AI-powered features. Your keys are stored locally in your browser
+              and are never sent to our servers.
+            </p>
+            
+            <div className="space-y-4">
               <div>
-                <label htmlFor="github-token" className="block text-sm font-medium mb-1">
-                  GitHub Personal Access Token
+                <label htmlFor="openai-key" className="block text-sm font-medium mb-1">
+                  OpenAI API Key
                 </label>
                 <input
-                  id="github-token"
+                  id="openai-key"
                   type="password"
-                  value={githubToken}
-                  onChange={(e) => setGithubToken(e.target.value)}
-                  placeholder="ghp_..."
+                  value={openaiKey}
+                  onChange={(e) => setOpenaiKey(e.target.value)}
+                  placeholder="sk-..."
                   className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
                 />
-                {keyStatus.github === 'valid' && (
-                  <p className="mt-1 text-xs text-green-500">
-                    ✓ Valid GitHub token
-                  </p>
-                )}
-                {keyStatus.github === 'invalid' && (
-                  <p className="mt-1 text-xs text-red-500">
-                    ✗ Invalid GitHub token
-                  </p>
-                )}
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Create a token with <code>repo</code> scope at{' '}
+                  Get your key from{' '}
                   <a 
-                    href="https://github.com/settings/tokens" 
+                    href="https://platform.openai.com/api-keys" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-blue-600 dark:text-blue-400 hover:underline"
                   >
-                    GitHub Developer Settings
+                    OpenAI Dashboard
                   </a>
+                </p>
+              </div>
+              
+              <div>
+                <label htmlFor="mistral-key" className="block text-sm font-medium mb-1">
+                  Mistral AI API Key
+                </label>
+                <input
+                  id="mistral-key"
+                  type="password"
+                  value={mistralKey}
+                  onChange={(e) => setMistralKey(e.target.value)}
+                  placeholder="..."
+                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Get your key from{' '}
+                  <a 
+                    href="https://console.mistral.ai/api-keys/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Mistral AI Console
+                  </a>
+                </p>
+              </div>
+              
+              <div>
+                <label htmlFor="gemini-key" className="block text-sm font-medium mb-1">
+                  Google Gemini API Key
+                </label>
+                <input
+                  id="gemini-key"
+                  type="password"
+                  value={geminiKey}
+                  onChange={(e) => setGeminiKey(e.target.value)}
+                  placeholder="..."
+                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Get your key from{' '}
+                  <a 
+                    href="https://aistudio.google.com/app/apikey" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Google AI Studio
+                  </a>
+                </p>
+              </div>
+              
+              <div>
+                <label htmlFor="claude-key" className="block text-sm font-medium mb-1">
+                  Anthropic Claude API Key
+                </label>
+                <input
+                  id="claude-key"
+                  type="password"
+                  value={claudeKey}
+                  onChange={(e) => setClaudeKey(e.target.value)}
+                  placeholder="sk-ant-..."
+                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Get your key from{' '}
+                  <a 
+                    href="https://console.anthropic.com/keys" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Anthropic Console
+                  </a>
+                </p>
+              </div>
+              
+              <div>
+                <label htmlFor="deepseek-key" className="block text-sm font-medium mb-1">
+                  DeepSeek API Key
+                </label>
+                <input
+                  id="deepseek-key"
+                  type="password"
+                  value={deepseekKey}
+                  onChange={(e) => setDeepseekKey(e.target.value)}
+                  placeholder="..."
+                  className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Get your key from DeepSeek's developer portal
                 </p>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-lg font-medium mb-4">AI Settings</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Enter your API keys to use AI-powered features. Your keys are stored locally in your browser
-                and are never sent to our servers.
-              </p>
+          
+          <div>
+            <h2 className="text-lg font-medium mb-4">Default AI Provider</h2>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="ai-provider"
+                  value="openai"
+                  checked={defaultProvider === 'openai'}
+                  onChange={() => setDefaultProvider('openai')}
+                  className="mr-2"
+                />
+                <span>OpenAI</span>
+              </label>
               
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="openai-key" className="block text-sm font-medium mb-1">
-                    OpenAI API Key
-                  </label>
-                  <input
-                    id="openai-key"
-                    type="password"
-                    value={openaiKey}
-                    onChange={(e) => setOpenaiKey(e.target.value)}
-                    placeholder="sk-..."
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Get your key from{' '}
-                    <a 
-                      href="https://platform.openai.com/api-keys" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      OpenAI Dashboard
-                    </a>
-                  </p>
-                </div>
-                
-                <div>
-                  <label htmlFor="mistral-key" className="block text-sm font-medium mb-1">
-                    Mistral AI API Key
-                  </label>
-                  <input
-                    id="mistral-key"
-                    type="password"
-                    value={mistralKey}
-                    onChange={(e) => setMistralKey(e.target.value)}
-                    placeholder="..."
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Get your key from{' '}
-                    <a 
-                      href="https://console.mistral.ai/api-keys/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Mistral AI Console
-                    </a>
-                  </p>
-                </div>
-                
-                <div>
-                  <label htmlFor="gemini-key" className="block text-sm font-medium mb-1">
-                    Google Gemini API Key
-                  </label>
-                  <input
-                    id="gemini-key"
-                    type="password"
-                    value={geminiKey}
-                    onChange={(e) => setGeminiKey(e.target.value)}
-                    placeholder="..."
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Get your key from{' '}
-                    <a 
-                      href="https://aistudio.google.com/app/apikey" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Google AI Studio
-                    </a>
-                  </p>
-                </div>
-                
-                <div>
-                  <label htmlFor="claude-key" className="block text-sm font-medium mb-1">
-                    Anthropic Claude API Key
-                  </label>
-                  <input
-                    id="claude-key"
-                    type="password"
-                    value={claudeKey}
-                    onChange={(e) => setClaudeKey(e.target.value)}
-                    placeholder="sk-ant-..."
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Get your key from{' '}
-                    <a 
-                      href="https://console.anthropic.com/keys" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Anthropic Console
-                    </a>
-                  </p>
-                </div>
-                
-                <div>
-                  <label htmlFor="deepseek-key" className="block text-sm font-medium mb-1">
-                    DeepSeek API Key
-                  </label>
-                  <input
-                    id="deepseek-key"
-                    type="password"
-                    value={deepseekKey}
-                    onChange={(e) => setDeepseekKey(e.target.value)}
-                    placeholder="..."
-                    className="w-full rounded-md border border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-600 dark:bg-slate-700 dark:text-white"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Get your key from DeepSeek's developer portal
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h2 className="text-lg font-medium mb-4">Default AI Provider</h2>
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="ai-provider"
-                    value="openai"
-                    checked={defaultProvider === 'openai'}
-                    onChange={() => setDefaultProvider('openai')}
-                    className="mr-2"
-                  />
-                  <span>OpenAI</span>
-                </label>
-                
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="ai-provider"
-                    value="mistral"
-                    checked={defaultProvider === 'mistral'}
-                    onChange={() => setDefaultProvider('mistral')}
-                    className="mr-2"
-                  />
-                  <span>Mistral</span>
-                </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="ai-provider"
+                  value="mistral"
+                  checked={defaultProvider === 'mistral'}
+                  onChange={() => setDefaultProvider('mistral')}
+                  className="mr-2"
+                />
+                <span>Mistral</span>
+              </label>
 
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="ai-provider"
-                    value="gemini"
-                    checked={defaultProvider === 'gemini'}
-                    onChange={() => setDefaultProvider('gemini')}
-                    className="mr-2"
-                  />
-                  <span>Gemini</span>
-                </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="ai-provider"
+                  value="gemini"
+                  checked={defaultProvider === 'gemini'}
+                  onChange={() => setDefaultProvider('gemini')}
+                  className="mr-2"
+                />
+                <span>Gemini</span>
+              </label>
 
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="ai-provider"
-                    value="claude"
-                    checked={defaultProvider === 'claude'}
-                    onChange={() => setDefaultProvider('claude')}
-                    className="mr-2"
-                  />
-                  <span>Claude</span>
-                </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="ai-provider"
+                  value="claude"
+                  checked={defaultProvider === 'claude'}
+                  onChange={() => setDefaultProvider('claude')}
+                  className="mr-2"
+                />
+                <span>Claude</span>
+              </label>
 
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="ai-provider"
-                    value="deepseek"
-                    checked={defaultProvider === 'deepseek'}
-                    onChange={() => setDefaultProvider('deepseek')}
-                    className="mr-2"
-                  />
-                  <span>DeepSeek</span>
-                </label>
-              </div>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="ai-provider"
+                  value="deepseek"
+                  checked={defaultProvider === 'deepseek'}
+                  onChange={() => setDefaultProvider('deepseek')}
+                  className="mr-2"
+                />
+                <span>DeepSeek</span>
+              </label>
             </div>
           </div>
-        </div>
-        
-        <div className="mt-6 flex items-center justify-between">
-          {saveStatus === 'error' && error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+          
+          <div className="flex justify-end mt-8">
+            <button
+              onClick={handleSave}
+              disabled={saveStatus === 'saving'}
+              className={`rounded-md px-4 py-2 font-medium text-white 
+                ${saveStatus === 'saving' ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              {saveStatus === 'saving' ? 'Saving...' : 'Save Settings'}
+            </button>
+          </div>
+          
           {saveStatus === 'success' && (
-            <p className="text-sm text-green-500">Settings saved successfully!</p>
+            <p className="text-sm text-green-500 text-center">
+              ✓ Settings saved successfully!
+            </p>
           )}
-          <div className="flex-grow"></div>
-          <button
-            onClick={handleSave}
-            disabled={saveStatus === 'saving'}
-            className={`rounded-md px-4 py-2 font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              saveStatus === 'saving' 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {saveStatus === 'saving' ? 'Saving...' : 'Save Settings'}
-          </button>
+          
+          {saveStatus === 'error' && (
+            <p className="text-sm text-red-500 text-center">
+              ✗ Error saving settings: {error}
+            </p>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <main className="container mx-auto px-4 py-8">
+      <HeaderWrapper />
+      <Suspense fallback={<SettingsLoadingFallback />}>
+        <SettingsContent />
+      </Suspense>
     </main>
   );
 } 
